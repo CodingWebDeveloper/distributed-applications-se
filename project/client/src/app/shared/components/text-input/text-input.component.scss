@@ -1,0 +1,12 @@
+.loader {
+  position: absolute;
+  width: auto;
+  top: 20px;
+  right: 40px;
+  margin-top: 0;
+}
+
+.form-control:focus {
+  border-color: #772953;
+  box-shadow: 0 0 0 0.1rem #772953; /* Adjust color and size as needed */
+}

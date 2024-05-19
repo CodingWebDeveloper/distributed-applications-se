@@ -1,0 +1,98 @@
+<div class="row g-3">
+  <div>
+    <h2 class="fw-bold text-center">Explore Events</h2>
+  </div>
+
+  <div class="mb-4">
+    <button
+      type="button"
+      class="btn me-2"
+      [ngClass]="
+        this.eventParams.filter === 'all' ? 'btn-dark' : 'btn-outline-dark'
+      "
+      (click)="this.onFilterChange('all')"
+    >
+      All
+    </button>
+
+    <button
+      type="button"
+      class="btn me-2"
+      [ngClass]="
+        this.eventParams.filter === 'upcoming' ? 'btn-dark' : 'btn-outline-dark'
+      "
+      (click)="this.onFilterChange('upcoming')"
+    >
+      Upcoming
+    </button>
+
+    <button
+      type="button"
+      class="btn me-2"
+      [ngClass]="
+        this.eventParams.filter === 'past' ? 'btn-dark' : 'btn-outline-dark'
+      "
+      (click)="this.onFilterChange('past')"
+    >
+      Past
+    </button>
+
+    <button
+      type="button"
+      class="btn me-2"
+      [ngClass]="
+        this.eventParams.filter === 'recent' ? 'btn-dark' : 'btn-outline-dark'
+      "
+      (click)="this.onFilterChange('recent')"
+    >
+      Recent
+    </button>
+
+    <button
+      type="button"
+      class="btn me-2"
+      [ngClass]="
+        this.eventParams.filter === 'favorites'
+          ? 'btn-dark'
+          : 'btn-outline-dark'
+      "
+      (click)="this.onFilterChange('favorites')"
+    >
+      Favorites
+    </button>
+
+    <button
+      type="button"
+      class="btn me-2"
+      [ngClass]="
+        this.eventParams.filter === 'attending'
+          ? 'btn-dark'
+          : 'btn-outline-dark'
+      "
+      (click)="this.onFilterChange('attending')"
+    >
+      Attending
+    </button>
+  </div>
+
+  <div class="col-3" *ngFor="let event of this.events">
+    <app-event-card
+      [event]="event"
+      [myEvents]="this.myEvents"
+      [myFavorites]="this.myFavorites"
+    ></app-event-card>
+  </div>
+
+  <div
+    *ngIf="this.eventParams.pageNumber < this.numberOfPages"
+    class="d-flex justify-content-center mt-5"
+  >
+    <button
+      (click)="this.loadMore()"
+      type="button"
+      class="btn btn-outline-dark"
+    >
+      Load More
+    </button>
+  </div>
+</div>

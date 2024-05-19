@@ -1,0 +1,30 @@
+{
+    "deploy.reloaded": {
+        "packages": [
+            {
+                "name": "Version 1.0.0",
+                "description": "Package version 1.0.0",
+
+                "files": [
+                    "publish/**"
+                ]
+            }
+        ],
+
+        "targets": [
+            {
+                "type": "sftp",
+                "name": "Linux",
+                "description": "SFTP folder",
+
+                "host": "165.22.29.92", "port": 22,
+                "user": "root", "password": "Carlos_Alcaraz03!a",
+
+                "dir": "/var/scalevent",
+                "mappings": {
+                    "publish/**": "/"
+                }
+            }
+        ]
+    }
+}

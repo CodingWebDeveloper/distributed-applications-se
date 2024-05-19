@@ -1,0 +1,226 @@
+<div class="row d-flex align-items-center">
+  <div class="col-6">
+    <div class="mb-4">
+      <h3 class="fw-bold">Add Event Image</h3>
+    </div>
+
+    <div class="dropzone" appDnd (fileDropped)="this.onFileDropped($event)">
+      <input
+        type="file"
+        #fileDropRef
+        id="fileDropRef"
+        (change)="this.fileBrowseHandler($event)"
+      />
+      <img src="assets/images/ic-upload-file.svg" alt="Upload image" />
+      <h3>Drag and drop file here</h3>
+      <h3>or</h3>
+      <label for="fileDropRef">Browse for file</label>
+    </div>
+
+    <div class="files-list">
+      <div class="single-file" *ngFor="let file of this.files; let i = index">
+        <img src="assets/images/ic-file.svg" width="45px" alt="file" />
+        <div class="info">
+          <h4 class="name">
+            {{ file?.name }}
+          </h4>
+          <p class="size">
+            {{ this.formatBytes(file?.size) }}
+          </p>
+          <app-progress [progress]="file?.progress"></app-progress>
+        </div>
+        <img
+          src="assets/images/ic-delete-file.svg"
+          class="delete"
+          width="20px"
+          alt="file"
+          (click)="this.deleteFile(i)"
+        />
+      </div>
+    </div>
+  </div>
+  <div class="col-6">
+    <div
+      *ngIf="this.eventForm"
+      [formGroup]="this.eventForm"
+      class="bg-secondary-subtle p-5 rounded"
+    >
+      <div class="mb-4">
+        <h3 class="fw-bold">Create New Event</h3>
+      </div>
+
+      <div class="row mb-4">
+        <div class="col-4">
+          <div class="form-group">
+            <app-text-input
+              [label]="'Title'"
+              formControlName="title"
+            ></app-text-input>
+          </div>
+        </div>
+
+        <div class="col-4">
+          <div class="form-group">
+            <app-text-input
+              [type]="'datetime-local'"
+              [label]="'Event Date & Time'"
+              formControlName="date"
+            ></app-text-input>
+          </div>
+        </div>
+        <div class="col-4"></div>
+
+        <div class="col-4">
+          <div class="form-group">
+            <select
+              class="form-select"
+              aria-label="Event Category Dropdown"
+              formControlName="category"
+              [ngClass]="
+                this.eventForm.get('category')?.touched
+                  ? this.eventForm.get('category')?.invalid
+                    ? 'is-invalid'
+                    : 'is-valid'
+                  : null
+              "
+            >
+              <option value="0">Select category</option>
+              <option
+                value="{{ category.id }}"
+                *ngFor="let category of this.categories"
+              >
+                {{ category.name }}
+              </option>
+            </select>
+
+            <div
+              *ngIf="
+                this.eventForm.get('category')?.hasError('required') ||
+                this.eventForm.get('category')?.hasError('min')
+              "
+              class="invalid-feedback"
+            >
+              Please select category
+            </div>
+          </div>
+        </div>
+
+        <div class="col-4">
+          <div class="form-group">
+            <select
+              class="form-select"
+              aria-label="Event Level Dropdown"
+              formControlName="level"
+              [ngClass]="
+                this.eventForm.get('level')?.touched
+                  ? this.eventForm.get('level')?.invalid
+                    ? 'is-invalid'
+                    : 'is-valid'
+                  : null
+              "
+            >
+              <option value="0">Select level</option>
+              <option value="{{ level.id }}" *ngFor="let level of this.levels">
+                {{ level.name }}
+              </option>
+            </select>
+
+            <div
+              *ngIf="
+                this.eventForm.get('level')?.hasError('required') ||
+                this.eventForm.get('level')?.hasError('min')
+              "
+              class="invalid-feedback"
+            >
+              Please select level
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-4">
+          <div class="form-group">
+            <app-text-input
+              [label]="'Presenter name'"
+              formControlName="presenterName"
+            ></app-text-input>
+          </div>
+        </div>
+
+        <div class="col-4">
+          <div class="form-group">
+            <app-text-input
+              [label]="'Presenter role'"
+              formControlName="presenterRole"
+            ></app-text-input>
+          </div>
+        </div>
+
+        <div class="col-4">
+          <div class="form-group">
+            <label for="presenterImageRef">Presenter image</label>
+
+            <input
+              type="file"
+              #presenterImageRef
+              id="presenterImageRef"
+              (change)="this.presenterImageBrowseHandler($event)"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-4">
+          <div class="form-group">
+            <app-text-input
+              [type]="'number'"
+              [label]="'Duration (in minutes)'"
+              formControlName="duration"
+            ></app-text-input>
+          </div>
+        </div>
+
+        <div class="col-4">
+          <div class="form-group mb-4">
+            <app-text-input
+              [label]="'Location'"
+              formControlName="location"
+            ></app-text-input>
+          </div>
+        </div>
+      </div>
+      <div class="NgxEditor__Wrapper">
+        <ngx-editor-menu [editor]="this.editor"></ngx-editor-menu>
+        <ngx-editor
+          formControlName="description"
+          [editor]="this.editor"
+          placeholder="Please provide description..."
+        ></ngx-editor>
+      </div>
+      <div
+        *ngIf="
+          this.eventForm.get('description')?.touched &&
+          this.eventForm.get('description')?.invalid
+        "
+      >
+        <span class="text-danger"> Description is required! </span>
+      </div>
+      <div class="d-flex justify-content-center mt-4">
+        <button
+          type="submit"
+          [disabled]="
+            this.eventForm.invalid ||
+            this.files.length <= 0 ||
+            this.presenterImageFiles.length <= 0
+          "
+          (click)="this.onSubmit()"
+          class="btn btn-dark w-100"
+        >
+          Submit
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

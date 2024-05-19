@@ -1,0 +1,41 @@
+<div class="form-floating mb-3">
+  <input
+    type="{{ this.type }}"
+    [formControl]="this.control"
+    class="form-control"
+    placeholder="{{ this.label }}"
+    [ngClass]="
+      this.control.touched
+        ? this.control.invalid
+          ? 'is-invalid'
+          : 'is-valid'
+        : null
+    "
+  />
+  <div
+    *ngIf="control.status === 'PENDING'"
+    class="fa fa-spinner fa-spin loader"
+  ></div>
+  <label for="floatingInput">{{ this.label }}</label>
+
+  <div *ngIf="this.control.errors?.['required']" class="invalid-feedback">
+    Please enter your {{ this.label }}
+  </div>
+
+  <div *ngIf="this.control.errors?.['email']" class="invalid-feedback">
+    Invalid email address
+  </div>
+
+  <div *ngIf="this.control.errors?.['pattern']" class="invalid-feedback">
+    Password not complex enough
+  </div>
+
+  <div *ngIf="this.control.errors?.['emailExists']" class="invalid-feedback">
+    Email address is taken
+  </div>
+
+  <div *ngIf="this.control.errors?.['min']" class="invalid-feedback">
+    {{ this.label }} should be equal or greater than
+    {{ this.control.errors?.['min']?.['min'] }}
+  </div>
+</div>

@@ -1,0 +1,531 @@
+<h1 class="font-weight-bold">Calendar</h1>
+<div class="row mb-4">
+  <div class="col-md d-flex align-items-baseline">
+    <div class="btn-group border border-1 border-dark">
+      <button
+        class="btn btn-outline-dark"
+        mwlCalendarPreviousView
+        [view]="view"
+        [(viewDate)]="viewDate"
+        (viewDateChange)="closeOpenMonthViewDay()"
+      >
+        <i class="bi-chevron-left"></i>
+      </button>
+      <button class="btn border-0" mwlCalendarToday [(viewDate)]="viewDate">
+        <h5 class="px-2">
+          {{ this.viewDate | date : "MMM dd yyyy" }}
+        </h5>
+      </button>
+      <button
+        class="btn btn-outline-dark"
+        mwlCalendarNextView
+        [view]="view"
+        [(viewDate)]="viewDate"
+        (viewDateChange)="closeOpenMonthViewDay()"
+      >
+        <i class="bi-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+  <div class="col-auto">
+    <div class="btn-group border border-1 border-dark">
+      <button
+        class="btn btn-outline-dark"
+        (click)="setView(CalendarView.Day)"
+        [class.active]="view === CalendarView.Day"
+      >
+        Day
+      </button>
+      <button
+        class="btn btn-outline-dark"
+        (click)="setView(CalendarView.Week)"
+        [class.active]="view === CalendarView.Week"
+      >
+        Week
+      </button>
+      <button
+        class="btn btn-outline-dark"
+        (click)="setView(CalendarView.Month)"
+        [class.active]="view === CalendarView.Month"
+      >
+        Month
+      </button>
+    </div>
+  </div>
+</div>
+<div [ngSwitch]="view">
+  <mwl-calendar-day-view
+    *ngSwitchCase="CalendarView.Day"
+    [viewDate]="viewDate"
+    [events]="events"
+    [refresh]="refresh"
+    (eventClicked)="handleEvent($event.event)"
+    (hourSegmentClicked)="hourClicked($event.date)"
+    (eventTimesChanged)="eventTimesChanged($event)"
+  >
+  </mwl-calendar-day-view>
+  <mwl-calendar-week-view
+    *ngSwitchCase="CalendarView.Week"
+    [viewDate]="viewDate"
+    [events]="events"
+    [refresh]="refresh"
+    (hourSegmentClicked)="hourClicked($event.date)"
+    (eventClicked)="handleEvent($event.event)"
+    (eventTimesChanged)="eventTimesChanged($event)"
+  >
+  </mwl-calendar-week-view>
+  <mwl-calendar-month-view
+    *ngSwitchCase="CalendarView.Month"
+    [viewDate]="viewDate"
+    [events]="events"
+    [refresh]="refresh"
+    [activeDayIsOpen]="activeDayIsOpen"
+    (dayClicked)="dayClicked($event.day)"
+    (eventClicked)="handleEvent($event.event)"
+    (eventTimesChanged)="eventTimesChanged($event)"
+  >
+  </mwl-calendar-month-view>
+</div>
+
+<ng-template #modalContentEdit>
+  <div class="modal-header">
+    <div>
+      <h4 class="modal-title">Edit Event</h4>
+    </div>
+
+    <button
+      type="button"
+      class="btn-close"
+      (click)="handleCloseEdit()"
+    ></button>
+  </div>
+  <div class="modal-body">
+    <div class="row" [formGroup]="this.eventForm">
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <app-text-input [label]="'Title'" formControlName="title">
+          </app-text-input>
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <app-text-input
+            [type]="'datetime-local'"
+            [label]="'Event Date & Time'"
+            formControlName="date"
+          >
+          </app-text-input>
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group mb-3">
+          <select
+            *ngIf="categories"
+            class="form-select"
+            [ngClass]="
+              this.eventForm.get('category')?.touched
+                ? this.eventForm.get('category')?.invalid
+                  ? 'is-invalid'
+                  : 'is-valid'
+                : null
+            "
+            formControlName="category"
+          >
+            <option value="0">Select Category</option>
+            <option *ngFor="let category of categories" [value]="category.id">
+              {{ category.name }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group mb-3">
+          <select
+            class="form-select"
+            formControlName="level"
+            [ngClass]="
+              this.eventForm.get('level')?.touched
+                ? this.eventForm.get('level')?.invalid
+                  ? 'is-invalid'
+                  : 'is-valid'
+                : null
+            "
+          >
+            <option value="0">Select Level</option>
+            <option *ngFor="let level of levels" [value]="level.id">
+              {{ level.name }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="form-group">
+          <app-text-input
+            [type]="'number'"
+            [label]="'Duration (in minutes)'"
+            formControlName="duration"
+          >
+          </app-text-input>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="form-group">
+          <app-text-input [label]="'Location'" formControlName="location">
+          </app-text-input>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="form-group">
+          <app-text-input
+            [label]="'Presenter name'"
+            formControlName="presenterName"
+          >
+          </app-text-input>
+        </div>
+      </div>
+      <div class="col-12 col-md-12">
+        <div class="form-group">
+          <app-text-input
+            [label]="'Presenter role'"
+            formControlName="presenterRole"
+          ></app-text-input>
+        </div>
+      </div>
+      <div class="col-12">
+        <ngx-editor-menu [editor]="editor"> </ngx-editor-menu>
+        <ngx-editor
+          [editor]="this.editor"
+          formControlName="description"
+          [placeholder]="'Please provide description...'"
+        ></ngx-editor>
+      </div>
+      <div
+        *ngIf="
+          this.eventForm.get('description')?.touched &&
+          this.eventForm.get('description')?.invalid
+        "
+      >
+        <span class="text-danger"> Description is required! </span>
+      </div>
+    </div>
+    <h6 class="mt-3">Event Image</h6>
+    <div
+      class="dropzone mb-2"
+      appDnd
+      (fileDropped)="this.onFileDropped($event)"
+    >
+      <input
+        type="file"
+        id="fileDropRef"
+        (change)="this.fileBrowseHandler($event)"
+      />
+      <img
+        width="40"
+        height="40"
+        src="assets/images/ic-upload-file.svg"
+        alt="Upload image"
+      />
+      <h6>Drag and drop file here</h6>
+      <h6>or</h6>
+      <label for="fileDropRef">Browse for file</label>
+    </div>
+    <div class="files-list">
+      <div
+        class="single-file"
+        (click)="this.openImage(this.eventForm.value.imageUrl)"
+        *ngIf="this.eventForm.value.imageUrl && !this.file"
+      >
+        <img src="assets/images/ic-file.svg" width="45px" alt="file" />
+        <div class="info">
+          <h4 class="name">Image</h4>
+        </div>
+      </div>
+      <div
+        *ngIf="this.file"
+        class="single-file"
+        (click)="this.openFile(this.file)"
+      >
+        <img src="assets/images/ic-file.svg" width="45px" alt="file" />
+        <div class="info">
+          <h4 class="name">
+            {{ file?.name }}
+          </h4>
+          <app-progress [progress]="file?.progress"></app-progress>
+          <p class="size">
+            {{ this.formatBytes(file?.size) }}
+          </p>
+        </div>
+        <img
+          src="assets/images/ic-delete-file.svg"
+          class="delete"
+          width="20px"
+          alt="file"
+          (click)="this.deleteFile()"
+        />
+      </div>
+    </div>
+    <div class="form-group row">
+      <label class="btn btn-primary w-100" for="presenterImageRef">
+        Attach Presenter image
+      </label>
+      <div *ngIf="this.presenterImage" class="alert alert-success mt-2">
+        Successfully attached new image
+      </div>
+      <div
+        *ngIf="this.eventForm.value.presenterImageUrl && !this.presenterImage"
+        class="alert alert-secondary mt-2"
+      >
+        Already attached image
+      </div>
+      <input
+        hidden
+        type="file"
+        #presenterImageRef
+        id="presenterImageRef"
+        (change)="this.presenterImageBrowseHandler($event)"
+      />
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button
+      type="button"
+      class="btn btn-danger col-12 col-md-6 col-lg-3"
+      (click)="onDelete($event)"
+    >
+      Delete
+    </button>
+    <button
+      type="button"
+      [disabled]="this.eventForm.invalid"
+      class="btn btn-dark col-12 col-md-6 col-lg-3"
+      (click)="onSubmit()"
+    >
+      Edit
+    </button>
+  </div>
+</ng-template>
+
+<ng-template #modalContentCreate>
+  <div class="modal-header">
+    <div>
+      <h4 class="modal-title">Create Event</h4>
+    </div>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="handleCloseEdit()"
+    ></button>
+  </div>
+  <div class="modal-body">
+    <div class="row" [formGroup]="this.createEventForm">
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <app-text-input [label]="'Title'" formControlName="title">
+          </app-text-input>
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <app-text-input
+            [type]="'datetime-local'"
+            [label]="'Event Date & Time'"
+            formControlName="date"
+          >
+          </app-text-input>
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group mb-3">
+          <select
+            *ngIf="categories"
+            class="form-select"
+            [ngClass]="
+              this.createEventForm.get('category')?.touched
+                ? this.createEventForm.get('category')?.invalid
+                  ? 'is-invalid'
+                  : 'is-valid'
+                : null
+            "
+            formControlName="category"
+          >
+            <option value="0">Select Category</option>
+            <option *ngFor="let category of categories" [value]="category.id">
+              {{ category.name }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group mb-3">
+          <select
+            class="form-select"
+            formControlName="level"
+            [ngClass]="
+              this.createEventForm.get('level')?.touched
+                ? this.createEventForm.get('level')?.invalid
+                  ? 'is-invalid'
+                  : 'is-valid'
+                : null
+            "
+          >
+            <option value="0">Select Level</option>
+            <option *ngFor="let level of levels" [value]="level.id">
+              {{ level.name }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <app-text-input
+            [type]="'number'"
+            [label]="'Duration (in minutes)'"
+            formControlName="duration"
+          >
+          </app-text-input>
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <app-text-input [label]="'Location'" formControlName="location">
+          </app-text-input>
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <app-text-input
+            [label]="'Presenter name'"
+            formControlName="presenterName"
+          >
+          </app-text-input>
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <div class="form-group">
+          <app-text-input
+            [label]="'Presenter role'"
+            formControlName="presenterRole"
+          ></app-text-input>
+        </div>
+      </div>
+      <div class="col-12">
+        <ngx-editor-menu [editor]="editor"> </ngx-editor-menu>
+        <ngx-editor
+          [editor]="this.editor"
+          formControlName="description"
+          [placeholder]="'Please provide description...'"
+        ></ngx-editor>
+      </div>
+      <div
+        *ngIf="
+          this.eventForm.get('description')?.touched &&
+          this.eventForm.get('description')?.invalid
+        "
+      >
+        <span class="text-danger"> Description is required! </span>
+      </div>
+    </div>
+    <h6 class="mt-3">Event Image</h6>
+    <div
+      class="dropzone mb-2"
+      appDnd
+      (fileDropped)="this.onFileDropped($event)"
+    >
+      <input
+        type="file"
+        id="fileDropRef"
+        (change)="this.fileBrowseHandler($event)"
+      />
+      <img
+        width="40"
+        height="40"
+        src="assets/images/ic-upload-file.svg"
+        alt="Upload image"
+      />
+      <h6>Drag and drop file here</h6>
+      <h6>or</h6>
+      <label for="fileDropRef">Browse for file</label>
+    </div>
+    <div class="files-list">
+      <div
+        *ngIf="this.file"
+        class="single-file"
+        (click)="this.openFile(this.file)"
+      >
+        <img src="assets/images/ic-file.svg" width="45px" alt="file" />
+        <div class="info">
+          <h4 class="name">
+            {{ file?.name }}
+          </h4>
+          <app-progress [progress]="file?.progress"></app-progress>
+          <p class="size">
+            {{ this.formatBytes(file?.size) }}
+          </p>
+        </div>
+        <img
+          src="assets/images/ic-delete-file.svg"
+          class="delete"
+          width="20px"
+          alt="file"
+          (click)="this.deleteFile()"
+        />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="btn btn-primary w-100" for="presenterImageRef">
+        Attach Presenter image
+      </label>
+      <div *ngIf="this.presenterImage" class="alert alert-success mt-2">
+        Successfully attached
+      </div>
+      <input
+        hidden
+        type="file"
+        #presenterImageRef
+        id="presenterImageRef"
+        (change)="this.presenterImageBrowseHandler($event)"
+      />
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button
+      type="button"
+      [disabled]="
+        this.createEventForm.invalid || !this.file || !this.presenterImage
+      "
+      class="btn btn-dark col-12 col-md-6 col-lg-3"
+      (click)="createOnSubmit()"
+    >
+      Create
+    </button>
+  </div>
+</ng-template>
+
+<ng-template #modalContentDetails>
+  <div class="modal-header">
+    <div class="modal-title">
+      <h6>My Calendar</h6>
+    </div>
+
+    <button
+      type="button"
+      class="btn-close"
+      (click)="handleCloseDetails()"
+    ></button>
+  </div>
+  <div class="modal-body">
+    <h2>{{ this.currEvent.title }}</h2>
+    <div>
+      <p>
+        {{ this.currEvent.formattedStartDate }} -
+        {{ this.currEvent.formattedEndDate }}
+      </p>
+    </div>
+    <p><i class="bi bi-geo-alt-fill"></i> {{ this.currEvent.location }}</p>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" (click)="handleClickMore()">
+      Learn More
+    </button>
+  </div>
+</ng-template>
